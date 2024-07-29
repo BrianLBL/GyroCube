@@ -21,6 +21,7 @@ void setup() {
   Wire.write(0x00);                  // Make reset - place a 0 into the 6B register
   Wire.endTransmission(true);        //end the transmission
 
+  calculate_IMU_error();
   delay(20);
 }
 void loop() {
@@ -48,9 +49,9 @@ void loop() {
   GyroY = (Wire.read() << 8 | Wire.read()) / 131.0;
   GyroZ = (Wire.read() << 8 | Wire.read()) / 131.0;
   // Correct the outputs with the calculated error values
-  GyroX = GyroX + 0.56; // GyroErrorX ~(-0.56)
-  GyroY = GyroY - 2; // GyroErrorY ~(2)
-  GyroZ = GyroZ + 0.79; // GyroErrorZ ~ (-0.8)
+  GyroX = GyroX + GyroErrorX; // GyroErrorX ~(-0.56)
+  GyroY = GyroY - GyroErrorY; // GyroErrorY ~(2)
+  GyroZ = GyroZ + GyroErrorZ; // GyroErrorZ ~ (-0.8)
   // Currently the raw values are in degrees per seconds, deg/s, so we need to multiply by sendonds (s) to get the angle in degrees
   gyroAngleX = gyroAngleX + GyroX * elapsedTime; // deg/s * s = deg
   gyroAngleY = gyroAngleY + GyroY * elapsedTime;
@@ -59,8 +60,8 @@ void loop() {
   gyroAngleX = 0.96 * gyroAngleX + 0.04 * accAngleX;
   gyroAngleY = 0.96 * gyroAngleY + 0.04 * accAngleY;
 
-  gyroAngleX = roll;
-  gyroAngleY = pitch;
+  roll = gyroAngleX;
+  pitch = gyroAngleY;
   
   // Print the values on the serial monitor
   Serial.print(roll);
